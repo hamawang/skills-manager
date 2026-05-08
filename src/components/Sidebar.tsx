@@ -57,6 +57,7 @@ export function Sidebar() {
   const [orderedTools, setOrderedTools] = useState<typeof installedTools>([]);
   const scenarioReorderQueueRef = useRef<Promise<void>>(Promise.resolve());
   const projectReorderQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const [scenariosOpen, setScenariosOpen] = useState(true);
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [globalWorkspaceOpen, setGlobalWorkspaceOpen] = useState(true);
 
@@ -247,246 +248,130 @@ export function Sidebar() {
         {/* Divider */}
         <div className="mx-3 mt-3.5 mb-2.5 border-t border-border-subtle" />
 
-        {/* Scenarios */}
+        {/* Scrollable section */}
         <div className="px-2.5 flex-1 overflow-y-auto scrollbar-hide min-h-0">
-          <div className="mb-1.5 px-2.5">
-            <span className="block truncate text-[12px] font-semibold tracking-[0.01em] text-muted whitespace-nowrap">
-              {t("sidebar.scenarios")}
-            </span>
-          </div>
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="scenarios">
-              {(droppableProvided) => (
-                <div
-                  className="space-y-0.5"
-                  ref={droppableProvided.innerRef}
-                  {...droppableProvided.droppableProps}
-                >
-                  {orderedScenarios.map((scenario, index) => {
-                    const isActive = viewedScenario?.id === scenario.id;
-                    const scenarioIcon = getScenarioIconOption(scenario);
-                    const ScenarioIcon = scenarioIcon.icon;
-                    return (
-                      <Draggable key={scenario.id} draggableId={scenario.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={cn(
-                              "group relative flex items-center rounded-[5px] transition-colors",
-                              isActive ? "bg-surface-active" : "hover:bg-surface-hover"
-                            )}
-                          >
-                            <button
-                              onClick={() => handleSwitchScenario(scenario.id)}
-                              className={cn(
-                                "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[15px] leading-5 outline-none",
-                                isActive ? "font-medium text-primary" : "text-tertiary group-hover:text-secondary"
-                              )}
-                            >
-                              <span
-                                className={cn(
-                                  "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
-                                  isActive
-                                    ? `${scenarioIcon.activeClass} ${scenarioIcon.colorClass}`
-                                    : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
-                                )}
-                              >
-                                <ScenarioIcon className="h-3 w-3" />
-                              </span>
-                              <span className="flex-1 truncate">{scenario.name}</span>
-                              <span className="ml-auto flex h-[18px] w-[32px] shrink-0 items-center justify-end group-hover:hidden">
-                                {scenario.skill_count > 0 && (
-                                  <span
-                                    className={cn(
-                                      "min-w-[18px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
-                                      isActive
-                                        ? "bg-accent-bg text-accent-light"
-                                        : "bg-surface-hover text-muted"
-                                    )}
-                                  >
-                                    {scenario.skill_count}
-                                  </span>
-                                )}
-                              </span>
-                            </button>
 
-                            <div className={cn(
-                              "absolute right-1 flex items-center rounded-[3px] invisible opacity-0 transition-opacity group-hover:visible group-hover:opacity-100",
-                              isActive ? "bg-surface-active" : "bg-surface-hover"
-                            )}>
-                              <div
-                                {...provided.dragHandleProps}
-                                className="rounded p-1 text-faint cursor-grab active:cursor-grabbing"
-                              >
-                                <GripVertical className="h-3 w-3" />
-                              </div>
-                              <button
-                                onClick={(event) => handleRenameClick(event, scenario)}
-                                className="rounded p-1 text-faint transition hover:text-secondary"
-                                title={t("common.rename")}
-                              >
-                                <Pencil className="h-3 w-3" />
-                              </button>
-                              <button
-                                onClick={(event) => handleDeleteClick(event, scenario)}
-                                className="rounded p-1 text-faint transition hover:text-red-400"
-                                title={t("common.delete")}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {droppableProvided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-2.5 py-[7px] mt-1 rounded-[5px] text-[13px] text-muted hover:text-secondary hover:bg-surface-hover transition-colors w-full outline-none"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {t("sidebar.newScenario")}
-          </button>
-
-          {/* Divider */}
-          <div className="mx-0.5 mt-3.5 mb-2.5 border-t border-border-subtle" />
-
-          {/* Projects */}
+          {/* ── Presets ── */}
           <div className="mb-1.5 px-2.5 flex items-center gap-1">
             <button
-              onClick={() => setProjectsOpen((v) => !v)}
+              onClick={() => setScenariosOpen((v) => !v)}
               className="flex min-w-0 flex-1 items-center gap-1 text-left outline-none"
             >
-              {projectsOpen
+              {scenariosOpen
                 ? <ChevronDown className="h-3 w-3 shrink-0 text-faint" />
                 : <ChevronRight className="h-3 w-3 shrink-0 text-faint" />}
               <span className="truncate text-[12px] font-semibold tracking-[0.01em] text-muted whitespace-nowrap">
-                {t("sidebar.projects")}
+                {t("sidebar.scenarios")}
               </span>
             </button>
           </div>
-          {projectsOpen && (
-          <>
-          <DragDropContext onDragEnd={handleProjectDragEnd}>
-            <Droppable droppableId="projects">
-              {(droppableProvided) => (
-                <div
-                  className="space-y-0.5"
-                  ref={droppableProvided.innerRef}
-                  {...droppableProvided.droppableProps}
-                >
-                  {orderedProjects.map((project, index) => {
-                    const isActive = location.pathname === `/project/${project.id}`;
-                    const healthIndicator = getSyncHealthIndicator(project.sync_health, project.skill_count);
-                    return (
-                      <Draggable key={project.id} draggableId={project.id} index={index}>
-                        {(provided) => (
-                          <div
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={cn(
-                              "group relative flex items-center rounded-[5px] transition-colors",
-                              isActive ? "bg-surface-active" : "hover:bg-surface-hover"
-                            )}
-                          >
-                            <button
-                              onClick={() => navigate(`/project/${project.id}`)}
-                              className={cn(
-                                "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[15px] leading-5 outline-none",
-                                isActive ? "font-medium text-primary" : "text-tertiary group-hover:text-secondary"
-                              )}
-                            >
-                              <span
+          {scenariosOpen && (
+            <>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="scenarios">
+                  {(droppableProvided) => (
+                    <div
+                      className="space-y-0.5"
+                      ref={droppableProvided.innerRef}
+                      {...droppableProvided.droppableProps}
+                    >
+                      {orderedScenarios.map((scenario, index) => {
+                        const isActive = viewedScenario?.id === scenario.id;
+                        const scenarioIcon = getScenarioIconOption(scenario);
+                        const ScenarioIcon = scenarioIcon.icon;
+                        return (
+                          <Draggable key={scenario.id} draggableId={scenario.id} index={index}>
+                            {(provided) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
                                 className={cn(
-                                  "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
-                                  isActive
-                                    ? project.workspace_type === "linked"
-                                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
-                                      : "border-blue-500/30 bg-blue-500/10 text-blue-500"
-                                    : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
+                                  "group relative flex items-center rounded-[5px] transition-colors",
+                                  isActive ? "bg-surface-active" : "hover:bg-surface-hover"
                                 )}
                               >
-                                {project.workspace_type === "linked"
-                                  ? <Link2 className="h-3 w-3" />
-                                  : <FolderOpen className="h-3 w-3" />}
-                              </span>
-                              <span className="flex-1 truncate">{project.name}</span>
-                              <span className="ml-auto flex h-[18px] w-[52px] shrink-0 items-center justify-end gap-2 group-hover:hidden">
-                                {healthIndicator && (
-                                  <span
-                                    className={cn("h-1.5 w-1.5 shrink-0 rounded-full", healthIndicator.color)}
-                                    title={healthIndicator.title}
-                                  />
-                                )}
-                                {project.skill_count > 0 && (
+                                <button
+                                  onClick={() => handleSwitchScenario(scenario.id)}
+                                  className={cn(
+                                    "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[15px] leading-5 outline-none",
+                                    isActive ? "font-medium text-primary" : "text-tertiary group-hover:text-secondary"
+                                  )}
+                                >
                                   <span
                                     className={cn(
-                                      "min-w-[24px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
+                                      "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
                                       isActive
-                                        ? "bg-accent-bg text-accent-light"
-                                        : "bg-surface-hover text-muted"
+                                        ? `${scenarioIcon.activeClass} ${scenarioIcon.colorClass}`
+                                        : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
                                     )}
                                   >
-                                    {project.skill_count}
+                                    <ScenarioIcon className="h-3 w-3" />
                                   </span>
-                                )}
-                              </span>
-                            </button>
-
-                            <div className={cn(
-                              "absolute right-1 flex items-center rounded-[3px] invisible opacity-0 transition-opacity group-hover:visible group-hover:opacity-100",
-                              isActive ? "bg-surface-active" : "bg-surface-hover"
-                            )}>
-                              <div
-                                {...provided.dragHandleProps}
-                                className="rounded p-1 text-faint cursor-grab active:cursor-grabbing"
-                              >
-                                <GripVertical className="h-3 w-3" />
+                                  <span className="flex-1 truncate">{scenario.name}</span>
+                                  <span className="ml-auto flex h-[18px] w-[32px] shrink-0 items-center justify-end group-hover:hidden">
+                                    {scenario.skill_count > 0 && (
+                                      <span
+                                        className={cn(
+                                          "min-w-[18px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
+                                          isActive
+                                            ? "bg-accent-bg text-accent-light"
+                                            : "bg-surface-hover text-muted"
+                                        )}
+                                      >
+                                        {scenario.skill_count}
+                                      </span>
+                                    )}
+                                  </span>
+                                </button>
+                                <div className={cn(
+                                  "absolute right-1 flex items-center rounded-[3px] invisible opacity-0 transition-opacity group-hover:visible group-hover:opacity-100",
+                                  isActive ? "bg-surface-active" : "bg-surface-hover"
+                                )}>
+                                  <div
+                                    {...provided.dragHandleProps}
+                                    className="rounded p-1 text-faint cursor-grab active:cursor-grabbing"
+                                  >
+                                    <GripVertical className="h-3 w-3" />
+                                  </div>
+                                  <button
+                                    onClick={(event) => handleRenameClick(event, scenario)}
+                                    className="rounded p-1 text-faint transition hover:text-secondary"
+                                    title={t("common.rename")}
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    onClick={(event) => handleDeleteClick(event, scenario)}
+                                    className="rounded p-1 text-faint transition hover:text-red-400"
+                                    title={t("common.delete")}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </div>
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setDeleteProjectTarget(project);
-                                }}
-                                className="rounded p-1 text-faint transition hover:text-red-400"
-                                title={t("common.delete")}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    );
-                  })}
-                  {droppableProvided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
-
-          <button
-            onClick={() => setShowAddProject(true)}
-            className="flex items-center gap-2 px-2.5 py-[7px] mt-1 rounded-[5px] text-[13px] text-muted hover:text-secondary hover:bg-surface-hover transition-colors w-full outline-none"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            {t("sidebar.addProject")}
-          </button>
-          </>
+                            )}
+                          </Draggable>
+                        );
+                      })}
+                      {droppableProvided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="flex items-center gap-2 px-2.5 py-[7px] mt-1 rounded-[5px] text-[13px] text-muted hover:text-secondary hover:bg-surface-hover transition-colors w-full outline-none"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {t("sidebar.newScenario")}
+              </button>
+            </>
           )}
 
           {/* Divider */}
           <div className="mx-0.5 mt-3.5 mb-2.5 border-t border-border-subtle" />
 
-          {/* Global Workspace */}
+          {/* ── Global Workspace ── */}
           <div className="mb-1.5 px-2.5 flex items-center gap-1">
             <button
               onClick={() => setGlobalWorkspaceOpen((v) => !v)}
@@ -500,7 +385,6 @@ export function Sidebar() {
               </span>
             </button>
           </div>
-
           {globalWorkspaceOpen && (
             <>
               {/* Pinned overview item */}
@@ -529,21 +413,114 @@ export function Sidebar() {
                 );
               })()}
               {orderedTools.length === 0 ? (
-              <p className="px-5 py-1.5 text-[12px] text-faint">{t("globalWorkspace.noAgents")}</p>
-            ) : (
-              <DragDropContext onDragEnd={handleToolDragEnd}>
-                <Droppable droppableId="global-workspace-tools">
+                <p className="px-5 py-1.5 text-[12px] text-faint">{t("globalWorkspace.noAgents")}</p>
+              ) : (
+                <DragDropContext onDragEnd={handleToolDragEnd}>
+                  <Droppable droppableId="global-workspace-tools">
+                    {(droppableProvided) => (
+                      <div
+                        className="space-y-0.5"
+                        ref={droppableProvided.innerRef}
+                        {...droppableProvided.droppableProps}
+                      >
+                        {orderedTools.map((tool, index) => {
+                          const skillCount = globalSkillsByAgent[tool.key] ?? 0;
+                          const isActive = location.pathname === `/global-workspace/${tool.key}`;
+                          return (
+                            <Draggable key={tool.key} draggableId={tool.key} index={index}>
+                              {(provided) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  className={cn(
+                                    "group relative flex items-center rounded-[5px] transition-colors",
+                                    isActive ? "bg-surface-active" : "hover:bg-surface-hover"
+                                  )}
+                                >
+                                  <button
+                                    onClick={() => navigate(`/global-workspace/${tool.key}`)}
+                                    className={cn(
+                                      "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[13px] leading-5 outline-none",
+                                      isActive ? "font-medium text-primary" : "text-tertiary group-hover:text-secondary"
+                                    )}
+                                  >
+                                    <span className={cn(
+                                      "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
+                                      isActive
+                                        ? "border-accent/30 bg-accent/10 text-accent"
+                                        : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
+                                    )}>
+                                      <Globe className="h-3 w-3" />
+                                    </span>
+                                    <span className="flex-1 truncate">{tool.display_name}</span>
+                                    <span className="ml-auto flex h-[18px] w-[32px] shrink-0 items-center justify-end group-hover:hidden">
+                                      {skillCount > 0 && (
+                                        <span className={cn(
+                                          "min-w-[18px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
+                                          isActive ? "bg-accent-bg text-accent-light" : "bg-surface-hover text-muted"
+                                        )}>
+                                          {skillCount}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </button>
+                                  <div className={cn(
+                                    "absolute right-1 flex items-center rounded-[3px] invisible opacity-0 transition-opacity group-hover:visible group-hover:opacity-100",
+                                    isActive ? "bg-surface-active" : "bg-surface-hover"
+                                  )}>
+                                    <div
+                                      {...provided.dragHandleProps}
+                                      className="rounded p-1 text-faint cursor-grab active:cursor-grabbing"
+                                    >
+                                      <GripVertical className="h-3 w-3" />
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {droppableProvided.placeholder}
+                      </div>
+                    )}
+                  </Droppable>
+                </DragDropContext>
+              )}
+            </>
+          )}
+
+          {/* Divider */}
+          <div className="mx-0.5 mt-3.5 mb-2.5 border-t border-border-subtle" />
+
+          {/* ── Projects ── */}
+          <div className="mb-1.5 px-2.5 flex items-center gap-1">
+            <button
+              onClick={() => setProjectsOpen((v) => !v)}
+              className="flex min-w-0 flex-1 items-center gap-1 text-left outline-none"
+            >
+              {projectsOpen
+                ? <ChevronDown className="h-3 w-3 shrink-0 text-faint" />
+                : <ChevronRight className="h-3 w-3 shrink-0 text-faint" />}
+              <span className="truncate text-[12px] font-semibold tracking-[0.01em] text-muted whitespace-nowrap">
+                {t("sidebar.projects")}
+              </span>
+            </button>
+          </div>
+          {projectsOpen && (
+            <>
+              <DragDropContext onDragEnd={handleProjectDragEnd}>
+                <Droppable droppableId="projects">
                   {(droppableProvided) => (
                     <div
                       className="space-y-0.5"
                       ref={droppableProvided.innerRef}
                       {...droppableProvided.droppableProps}
                     >
-                      {orderedTools.map((tool, index) => {
-                        const skillCount = globalSkillsByAgent[tool.key] ?? 0;
-                        const isActive = location.pathname === `/global-workspace/${tool.key}`;
+                      {orderedProjects.map((project, index) => {
+                        const isActive = location.pathname === `/project/${project.id}`;
+                        const healthIndicator = getSyncHealthIndicator(project.sync_health, project.skill_count);
                         return (
-                          <Draggable key={tool.key} draggableId={tool.key} index={index}>
+                          <Draggable key={project.id} draggableId={project.id} index={index}>
                             {(provided) => (
                               <div
                                 ref={provided.innerRef}
@@ -554,28 +531,44 @@ export function Sidebar() {
                                 )}
                               >
                                 <button
-                                  onClick={() => navigate(`/global-workspace/${tool.key}`)}
+                                  onClick={() => navigate(`/project/${project.id}`)}
                                   className={cn(
-                                    "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[13px] leading-5 outline-none",
+                                    "flex min-w-0 flex-1 items-center gap-2 px-2.5 py-[7px] text-left text-[15px] leading-5 outline-none",
                                     isActive ? "font-medium text-primary" : "text-tertiary group-hover:text-secondary"
                                   )}
                                 >
-                                  <span className={cn(
-                                    "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
-                                    isActive
-                                      ? "border-accent/30 bg-accent/10 text-accent"
-                                      : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
-                                  )}>
-                                    <Globe className="h-3 w-3" />
+                                  <span
+                                    className={cn(
+                                      "flex h-[20px] w-[20px] shrink-0 items-center justify-center rounded border",
+                                      isActive
+                                        ? project.workspace_type === "linked"
+                                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-500"
+                                          : "border-blue-500/30 bg-blue-500/10 text-blue-500"
+                                        : "border-border bg-surface text-muted group-hover:border-border group-hover:text-tertiary"
+                                    )}
+                                  >
+                                    {project.workspace_type === "linked"
+                                      ? <Link2 className="h-3 w-3" />
+                                      : <FolderOpen className="h-3 w-3" />}
                                   </span>
-                                  <span className="flex-1 truncate">{tool.display_name}</span>
-                                  <span className="ml-auto flex h-[18px] w-[32px] shrink-0 items-center justify-end group-hover:hidden">
-                                    {skillCount > 0 && (
-                                      <span className={cn(
-                                        "min-w-[18px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
-                                        isActive ? "bg-accent-bg text-accent-light" : "bg-surface-hover text-muted"
-                                      )}>
-                                        {skillCount}
+                                  <span className="flex-1 truncate">{project.name}</span>
+                                  <span className="ml-auto flex h-[18px] w-[52px] shrink-0 items-center justify-end gap-2 group-hover:hidden">
+                                    {healthIndicator && (
+                                      <span
+                                        className={cn("h-1.5 w-1.5 shrink-0 rounded-full", healthIndicator.color)}
+                                        title={healthIndicator.title}
+                                      />
+                                    )}
+                                    {project.skill_count > 0 && (
+                                      <span
+                                        className={cn(
+                                          "min-w-[24px] rounded-full px-1.5 text-center text-[12px] font-medium leading-[18px] tabular-nums",
+                                          isActive
+                                            ? "bg-accent-bg text-accent-light"
+                                            : "bg-surface-hover text-muted"
+                                        )}
+                                      >
+                                        {project.skill_count}
                                       </span>
                                     )}
                                   </span>
@@ -590,6 +583,17 @@ export function Sidebar() {
                                   >
                                     <GripVertical className="h-3 w-3" />
                                   </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setDeleteProjectTarget(project);
+                                    }}
+                                    className="rounded p-1 text-faint transition hover:text-red-400"
+                                    title={t("common.delete")}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
                                 </div>
                               </div>
                             )}
@@ -601,9 +605,16 @@ export function Sidebar() {
                   )}
                 </Droppable>
               </DragDropContext>
-            )}
-          </>
+              <button
+                onClick={() => setShowAddProject(true)}
+                className="flex items-center gap-2 px-2.5 py-[7px] mt-1 rounded-[5px] text-[13px] text-muted hover:text-secondary hover:bg-surface-hover transition-colors w-full outline-none"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                {t("sidebar.addProject")}
+              </button>
+            </>
           )}
+
         </div>
 
         {/* Settings */}
