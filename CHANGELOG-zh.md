@@ -5,6 +5,19 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### 新增
+- **`skills-manager-cli` 写命令** —— CLI 现在可以让 Agent 完整管理 skills：`install`（本地路径 / git URL / `owner/repo[@skill]` 简写）、`update`、`check`、`remove`、`enable`、`disable`、`sync`、`search`（skills.sh 市场，无需 API Key）、`adopt`（把 Agent 目录里已存在的 skill 收编进中央库）、`tag add/remove/list`。所有命令支持 `--json`；`remove` / `sync` / `adopt` 支持 `--dry-run`；`remove` 必须显式带 `--yes`。
+- **`scenarios add-skill` / `remove-skill` CLI 命令** —— 在命令行管理 scenario 包含哪些 skill。
+- **`manage-skills` skill**（`assets/manage-skills/SKILL.md`）—— 放入 `~/.claude/skills/` 后，Claude Code（及其它 Agent）会优先用 `skills-manager-cli`，而不是直接往某一个 Agent 目录里装 skill。
+
+### 变更
+- **被禁用的 skill 现在会被 sync 跳过** —— 之前 `enabled` 字段写入数据库但没人读，UI 里"禁用"形同虚设。从本版本起，禁用的 skill 不会再被同步写入 Agent 目录（已经同步出去的副本**不会**自动移除，需要 `skills remove` 主动清理）。
+
+### 移除
+- **SkillsMP AI 搜索** —— 移除第三方 `skillsmp.com` 集成（设置里的 API Key、安装页面的 "AI Search" 开关、`search_skillsmp` Tauri 命令）。免费的 skills.sh 市场和关键词搜索仍然保留。SkillsMP 没有被任何主流 Agent 生态采用，引入了付费第三方依赖且没有独特价值。
+
 ## [1.19.3] - 2026-05-17
 
 ### 新增

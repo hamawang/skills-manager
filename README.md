@@ -134,25 +134,58 @@ npm run tauri:dev
 
 ### CLI
 
-The repository now includes an agent-friendly CLI built on the same Rust shared core used by the desktop app. Repository bootstrap, tool resolution, scenario sync/apply logic, and metadata reindexing now live in reusable core modules instead of being reimplemented separately for CLI automation.
+The repository includes an agent-friendly CLI built on the same Rust shared core used by the desktop app. Both the CLI and the desktop app go through the same SQLite database, central library, and sync engine.
 
 ```bash
-# Show the active repository paths and counts
+# Repository / library overview
 npm run cli -- repo status
-
-# List skills / inspect one skill
 npm run cli -- skills list
 npm run cli -- skills show db
 
-# Preview or apply a scenario using the shared Rust core
+# Install skills (default: enter library only — does NOT sync to agents)
+npm run cli -- skills install ./my-skill                       # local path
+npm run cli -- skills install https://github.com/foo/bar.git   # git URL
+npm run cli -- skills install vercel-labs/agent-skills@react-best-practices  # skills.sh
+npm run cli -- skills install foo/bar --sync                   # add to active scenario + sync to agents
+
+# Update / check from upstream (git skills re-clone, local skills re-import source)
+npm run cli -- skills update --all
+npm run cli -- skills check --all
+
+# Search the skills.sh marketplace (no API key needed)
+npm run cli -- skills search react --limit 5
+
+# Remove (--yes required; --dry-run available)
+npm run cli -- skills remove <ref> --dry-run
+npm run cli -- skills remove <ref> --yes
+
+# Enable / disable (disabled skills are skipped by sync)
+npm run cli -- skills enable <ref>
+npm run cli -- skills disable <ref>
+
+# Sync the active scenario out to enabled agents
+npm run cli -- skills sync --dry-run
+npm run cli -- skills sync --tool claude_code
+
+# Adopt skills that already exist in an agent directory (e.g. ~/.claude/skills/)
+npm run cli -- skills adopt ~/.claude/skills --dry-run
+npm run cli -- skills adopt ~/.claude/skills
+
+# Tag
+npm run cli -- skills tag add <ref> web frontend
+npm run cli -- skills tag list
+
+# Scenarios
 npm run cli -- scenarios list
 npm run cli -- scenarios preview Default
 npm run cli -- scenarios apply Default
+npm run cli -- scenarios add-skill <scenario> <skill>
+npm run cli -- scenarios remove-skill <scenario> <skill>
 
-# Export one skill to another agent workspace
+# Export one skill to an arbitrary directory (one-shot copy, not managed)
 npm run cli -- skills export db --dest ~/.claude/skills/db
 
-# Inspect or sync the git-backed skills repo
+# Git-backed skills repo
 npm run cli -- git status
 npm run cli -- git pull
 npm run cli -- git commit -m "chore: update skills"
@@ -161,8 +194,8 @@ npm run cli -- git commit -m "chore: update skills"
 Available command groups:
 - `repo` — inspect or change the configured base directory
 - `tools` — list detected tool targets and paths
-- `skills` — list, inspect, and export skills
-- `scenarios` — list scenarios, preview sync targets, or apply one to default tool paths
+- `skills` — manage skills in the central library (`list / show / install / update / check / remove / enable / disable / sync / search / adopt / tag / export`)
+- `scenarios` — list scenarios, preview / apply, add or remove skills from a scenario
 - `git` — operate on the git-backed `skills/` repository (`clone`, `pull`, `push`, `commit`, `versions`, `restore`)
 
 Extra flags:

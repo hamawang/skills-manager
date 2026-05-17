@@ -455,7 +455,6 @@ pub fn run() {
             // Browse
             commands::browse::fetch_leaderboard,
             commands::browse::search_skillssh,
-            commands::browse::search_skillsmp,
             // Settings
             commands::settings::get_settings,
             commands::settings::set_settings,

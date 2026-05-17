@@ -74,6 +74,9 @@ pub fn collect_scenario_sync_targets(
     let mut targets = Vec::new();
 
     for skill in &skills {
+        if !skill.enabled {
+            continue;
+        }
         let source = PathBuf::from(&skill.central_path);
         let target_name = sync_engine::target_dir_name(&source, &skill.name);
         let adapters = enabled_installed_adapters_for_scenario_skill(store, scenario_id, &skill.id)?;

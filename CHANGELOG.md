@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **`skills-manager-cli` write commands** — the CLI now lets agents fully manage skills: `install` (local path / git URL / `owner/repo[@skill]` shorthand), `update`, `check`, `remove`, `enable`, `disable`, `sync`, `search` (skills.sh marketplace, no API key), `adopt` (pull existing skills from agent directories into the central library), and `tag add/remove/list`. Every command supports `--json`; `remove`, `sync`, and `adopt` support `--dry-run`. `remove` always requires `--yes`.
+- **`scenarios add-skill` / `remove-skill` CLI commands** — manage which skills belong to a scenario from the command line.
+- **`manage-skills` skill** (`assets/manage-skills/SKILL.md`) — drop into `~/.claude/skills/` so Claude Code (and other agents) prefers `skills-manager-cli` over installing skills directly into one agent's directory.
+
+### Changed
+- **Disabled skills are now skipped by sync** — previously the `enabled` flag was set but never read, so disabling a skill in the UI did nothing. Disabling now actually prevents future syncs from writing the skill into agent directories (existing copies are NOT removed automatically; use `skills remove` for that).
+
+### Removed
+- **SkillsMP AI search** — the third-party `skillsmp.com` integration (API key in Settings, "AI Search" toggle in Install Skills, the `search_skillsmp` Tauri command) has been removed. The free skills.sh marketplace and its keyword search remain. The SkillsMP service was not used by any major agent ecosystem and added a paid third-party dependency without unique value.
+
 ## [1.19.3] - 2026-05-17
 
 ### Added
