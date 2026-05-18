@@ -68,11 +68,12 @@
   },
   "dashboard": {
     "greeting": "Hello!",
-    "currentPreset": "Current Preset",
-    "skillsEnabled": "{{count}} Skills enabled",
-    "presetSkills": "Preset Skills",
+    "summary": "{{skills}} Skills in Library · {{agents}} Agents connected · {{projects}} Projects",
+    "librarySkills": "Library Skills",
+    "syncCoverage": "Sync Coverage",
+    "connectedAgents": "Connected Agents",
     "synced": "Synced",
-    "supportedAgents": "Agents",
+    "notSynced": "Not synced",
     "scanImport": "Scan & Import Local Skills",
     "installNew": "Install New Skills",
     "recentActivity": "Recent Activity"

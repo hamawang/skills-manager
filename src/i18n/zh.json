@@ -68,13 +68,14 @@
   },
   "dashboard": {
     "greeting": "你好！",
-    "currentPreset": "当前 Preset",
-    "skillsEnabled": "已启用 {{count}} 个 Skills",
-    "presetSkills": "当前 Preset Skills",
+    "summary": "Library 中 {{skills}} 个 Skills · 已接入 {{agents}} 个 Agent · {{projects}} 个 Project",
+    "librarySkills": "Library Skills",
+    "syncCoverage": "同步覆盖",
+    "connectedAgents": "已接入 Agent",
     "synced": "已同步",
-    "supportedAgents": "支持 Agent",
+    "notSynced": "未同步",
     "scanImport": "扫描本地 Skills 导入",
-    "installNew": "安装新 Skills 到当前 Preset",
+    "installNew": "安装新 Skills",
     "recentActivity": "近期动态"
   },
   "mySkills": {
