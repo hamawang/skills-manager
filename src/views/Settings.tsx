@@ -3,8 +3,6 @@ import {
   Folder,
   FolderOpen,
   RefreshCw,
-  CheckCircle2,
-  Circle,
   Globe,
   Link as LinkIcon,
   Copy,
@@ -785,21 +783,36 @@ export function Settings() {
         <div className="mt-0.5 shrink-0">
           {agent.installed ? (
             <button
+              type="button"
+              role="switch"
+              aria-checked={agent.enabled}
               onClick={() => handleToggleTool(agent.key, !agent.enabled)}
               disabled={togglingTools.has(agent.key)}
-              className="shrink-0 outline-none"
               title={agent.enabled ? t("settings.disableAgent") : t("settings.enableAgent")}
-            >
-              {togglingTools.has(agent.key) ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-muted" />
-              ) : agent.enabled ? (
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-              ) : (
-                <Circle className="h-3.5 w-3.5 text-amber-500" />
+              className={cn(
+                "relative inline-flex h-4 w-7 shrink-0 items-center rounded-full outline-none transition-colors focus-visible:ring-2 focus-visible:ring-accent",
+                agent.enabled ? "bg-emerald-500" : "bg-zinc-300 dark:bg-zinc-600",
+                togglingTools.has(agent.key) ? "cursor-wait opacity-60" : "cursor-pointer"
               )}
+            >
+              <span
+                className={cn(
+                  "inline-flex h-3 w-3 items-center justify-center rounded-full bg-white shadow transition-transform",
+                  agent.enabled ? "translate-x-3.5" : "translate-x-0.5"
+                )}
+              >
+                {togglingTools.has(agent.key) && (
+                  <Loader2 className="h-2 w-2 animate-spin text-muted" />
+                )}
+              </span>
             </button>
           ) : (
-            <Circle className="h-3.5 w-3.5 text-faint" />
+            <div
+              title={t("settings.notInstalled") as string}
+              className="relative inline-flex h-4 w-7 shrink-0 items-center rounded-full bg-zinc-200 opacity-60 dark:bg-zinc-700"
+            >
+              <span className="inline-flex h-3 w-3 translate-x-0.5 rounded-full bg-white/80 shadow" />
+            </div>
           )}
         </div>
 
