@@ -171,28 +171,27 @@ pub fn default_tool_adapters() -> Vec<ToolAdapter> {
             project_relative_skills_dir: None,
         },
         ToolAdapter {
-            // Codex reads user-level skills only from `~/.agents/skills` per the
-            // official docs (developers.openai.com/codex/skills). Deploy there;
-            // keep `.codex/skills` as a discovery fallback for users whose
-            // earlier syncs landed in the old (incorrect) deployment target.
+            // Codex CLI reads user-level skills from `~/.codex/skills/` and
+            // project-level skills from `<repo>/.codex/skills/`. The shared
+            // `~/.agents/skills` location is kept as a discovery fallback so
+            // skills synced there by other adapters (or by older skills-manager
+            // versions that deployed Codex there by mistake) still surface in
+            // the Codex tab.
             //
-            // Project-level path is pinned to `.codex/skills` to preserve the
-            // existing per-project UI grouping. Codex CLI's repo-scope reads
-            // <repo>/.agents/skills (which is already covered by other adapters
-            // sharing that path like cline/warp), so this pin doesn't lose
-            // functionality — it just keeps Codex from displacing those
-            // adapters as the representative for the shared `.agents/skills`
-            // project group.
+            // Note: `AGENT_SKILLS_PATH` (openai/codex#13074) is a proposed
+            // env var that would let Codex load from `<custom>/.agents/skills`;
+            // until it ships, `.codex/skills` is the only path Codex CLI
+            // actually reads.
             key: "codex".into(),
             display_name: "Codex".into(),
-            relative_skills_dir: ".agents/skills".into(),
+            relative_skills_dir: ".codex/skills".into(),
             relative_detect_dir: ".codex".into(),
-            additional_scan_dirs: vec![".codex/skills".into()],
+            additional_scan_dirs: vec![".agents/skills".into()],
             override_skills_dir: None,
             category: ToolCategory::Coding,
             is_custom: false,
             recursive_scan: false,
-            project_relative_skills_dir: Some(".codex/skills".into()),
+            project_relative_skills_dir: None,
         },
         ToolAdapter {
             key: "opencode".into(),

@@ -170,9 +170,9 @@ pub fn scan_local_skills_with_adapters(
         let additional_dirs = adapter.additional_existing_scan_dirs();
 
         // Discover via additional_scan_dirs even when the legacy detect dir is
-        // missing — handles tools that migrated to a shared skills location
-        // (e.g. codex/copilot → ~/.agents/skills) on machines without the
-        // legacy vendor dir.
+        // missing — handles tools whose skills land in a shared location
+        // (e.g. copilot → ~/.agents/skills) on machines without the legacy
+        // vendor dir.
         if !installed && additional_dirs.is_empty() {
             continue;
         }
