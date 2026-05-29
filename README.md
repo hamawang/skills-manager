@@ -237,7 +237,11 @@ npm run cli:build
 
 Skills Manager is ad-hoc signed but not notarized (no paid Apple Developer ID), so macOS Gatekeeper will warn the first time you open it.
 
-- **"App can't be opened because it is from an unidentified developer"** (releases from v1.20.0 onward) — Right-click the app in Finder and choose **Open**, then confirm in the dialog. Or open **System Settings → Privacy & Security** and click **Open Anyway** after the first failed launch.
+<p align="center">
+  <img src="assets/CleanShot_20260530_093302@2x.png" width="320" alt="macOS Gatekeeper warning: Apple could not verify skills-manager.app is free of malware" />
+</p>
+
+- **"Apple could not verify … is free of malware"** or **"App can't be opened because it is from an unidentified developer"** (releases from v1.20.0 onward) — On macOS 15 (Sequoia) the dialog above only offers **Move to Trash** / **Done**: click **Done**, then open **System Settings → Privacy & Security** and click **Open Anyway** (it appears after the first blocked launch). On older macOS you can instead right-click the app in Finder and choose **Open**, then confirm in the dialog.
 - **"App is damaged and can't be opened"** (releases up to and including v1.19.0) — Run this in Terminal, then open the app again:
 
   ```bash
