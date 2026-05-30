@@ -178,6 +178,20 @@
       "source": "来源"
     },
     "sourceDiffUnavailable": "暂时无法读取来源版本内容",
+    "sourceDiff": {
+      "noChanges": "无差异 —— 来源与中心库内容一致",
+      "status": {
+        "added": "新增",
+        "removed": "删除",
+        "modified": "修改"
+      },
+      "execBit": "权限 {{before}} → {{after}}",
+      "summary": {
+        "binary": "二进制文件已变更",
+        "too_large": "文件已变更，但过大无法预览",
+        "permission_only": "仅文件权限发生变化"
+      }
+    },
     "localSource": "本地仓库",
     "agentCount": "{{count}} 个 Agent",
     "ready": "已就绪",

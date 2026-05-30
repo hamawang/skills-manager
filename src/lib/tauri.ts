@@ -73,6 +73,30 @@ export interface SourceSkillDocument {
   revision: string;
 }
 
+export type SkillSourceDiffStatus = "added" | "removed" | "modified";
+export type SkillSourceDiffContentKind =
+  | "text"
+  | "binary"
+  | "too_large"
+  | "permission_only";
+
+export interface SkillSourceDiffEntry {
+  relative_path: string;
+  status: SkillSourceDiffStatus;
+  content_kind: SkillSourceDiffContentKind;
+  original_text: string | null;
+  updated_text: string | null;
+  executable_before: boolean;
+  executable_after: boolean;
+}
+
+export interface SkillSourceDiff {
+  skill_id: string;
+  source_label: string;
+  revision: string;
+  entries: SkillSourceDiffEntry[];
+}
+
 export interface Preset {
   id: string;
   name: string;
@@ -219,6 +243,9 @@ export const getSkillDocument = (skillId: string) =>
 
 export const getSourceSkillDocument = (skillId: string) =>
   invoke<SourceSkillDocument>("get_source_skill_document", { skillId });
+
+export const getSkillSourceDiff = (skillId: string) =>
+  invoke<SkillSourceDiff>("get_skill_source_diff", { skillId });
 
 export const deleteManagedSkill = (skillId: string) =>
   invoke<void>("delete_managed_skill", { skillId });

@@ -95,6 +95,31 @@ pub struct SourceSkillDocumentDto {
     pub revision: String,
 }
 
+/// Whole-directory diff between the central copy (`original`) and the source
+/// (`updated`), covering the same file scope that drives the update badge so
+/// the diff can never come back empty while the badge says "update available".
+#[derive(Debug, Serialize)]
+pub struct SkillSourceDiffDto {
+    pub skill_id: String,
+    pub source_label: String,
+    pub revision: String,
+    pub entries: Vec<SkillSourceDiffEntryDto>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SkillSourceDiffEntryDto {
+    pub relative_path: String,
+    /// "added" | "removed" | "modified"
+    pub status: String,
+    /// "text" | "binary" | "too_large" | "permission_only"
+    pub content_kind: String,
+    /// Present only when `content_kind == "text"`.
+    pub original_text: Option<String>,
+    pub updated_text: Option<String>,
+    pub executable_before: bool,
+    pub executable_after: bool,
+}
+
 #[derive(Debug, Clone)]
 pub struct InstallSourceMetadata {
     pub source_type: String,
@@ -292,6 +317,198 @@ pub async fn get_source_skill_document(
                 content,
                 source_label: source_label_for_skill(&skill),
                 revision: remote_revision,
+            })
+        })();
+
+        git_fetcher::cleanup_temp(&temp_dir);
+        result
+    })
+    .await?
+}
+
+/// Files larger than this are flagged but not sent to the frontend — the
+/// line diff is O(n²), so previewing a huge file would hang the UI.
+const MAX_DIFF_FILE_BYTES: usize = 256 * 1024;
+
+/// Classify a file's bytes for diffing: oversized and binary files get a
+/// summary row instead of a text body.
+fn classify_diff_bytes(bytes: Option<Vec<u8>>) -> (&'static str, Option<String>) {
+    match bytes {
+        Some(b) if b.len() > MAX_DIFF_FILE_BYTES => ("too_large", None),
+        Some(b) if b.contains(&0) => ("binary", None),
+        Some(b) => match String::from_utf8(b) {
+            Ok(text) => ("text", Some(text)),
+            Err(_) => ("binary", None),
+        },
+        None => ("binary", None),
+    }
+}
+
+/// Diff the whole content scope of two skill directories. `original_dir` is
+/// the central copy (old), `updated_dir` is the source (new). Uses the same
+/// file enumeration as the hash so it reports exactly what flips the badge.
+fn build_source_diff_entries(original_dir: &Path, updated_dir: &Path) -> Vec<SkillSourceDiffEntryDto> {
+    use std::collections::BTreeMap;
+    use crate::core::content_hash::{self, ContentEntry};
+
+    let index = |dir: &Path| -> BTreeMap<String, ContentEntry> {
+        content_hash::list_content_files(dir)
+            .into_iter()
+            .map(|e| (e.relative_path.clone(), e))
+            .collect()
+    };
+    let original = index(original_dir);
+    let updated = index(updated_dir);
+
+    let mut keys: Vec<&String> = original.keys().chain(updated.keys()).collect();
+    keys.sort();
+    keys.dedup();
+
+    let mut entries = Vec::new();
+    for key in keys {
+        match (original.get(key), updated.get(key)) {
+            (None, Some(u)) => {
+                let (kind, text) = classify_diff_bytes(std::fs::read(&u.path).ok());
+                entries.push(SkillSourceDiffEntryDto {
+                    relative_path: key.clone(),
+                    status: "added".into(),
+                    content_kind: kind.into(),
+                    original_text: None,
+                    updated_text: text,
+                    executable_before: false,
+                    executable_after: u.is_executable(),
+                });
+            }
+            (Some(o), None) => {
+                let (kind, text) = classify_diff_bytes(std::fs::read(&o.path).ok());
+                entries.push(SkillSourceDiffEntryDto {
+                    relative_path: key.clone(),
+                    status: "removed".into(),
+                    content_kind: kind.into(),
+                    original_text: text,
+                    updated_text: None,
+                    executable_before: o.is_executable(),
+                    executable_after: false,
+                });
+            }
+            (Some(o), Some(u)) => {
+                let o_bytes = std::fs::read(&o.path).ok();
+                let u_bytes = std::fs::read(&u.path).ok();
+                let exec_before = o.is_executable();
+                let exec_after = u.is_executable();
+                let bytes_equal = o_bytes.is_some() && o_bytes == u_bytes;
+
+                if bytes_equal {
+                    if exec_before == exec_after {
+                        continue; // unchanged — must match the hash's verdict
+                    }
+                    entries.push(SkillSourceDiffEntryDto {
+                        relative_path: key.clone(),
+                        status: "modified".into(),
+                        content_kind: "permission_only".into(),
+                        original_text: None,
+                        updated_text: None,
+                        executable_before: exec_before,
+                        executable_after: exec_after,
+                    });
+                    continue;
+                }
+
+                let (o_kind, o_text) = classify_diff_bytes(o_bytes);
+                let (u_kind, u_text) = classify_diff_bytes(u_bytes);
+                let (kind, original_text, updated_text) = if o_kind == "text" && u_kind == "text" {
+                    ("text", o_text, u_text)
+                } else if o_kind == "too_large" || u_kind == "too_large" {
+                    ("too_large", None, None)
+                } else {
+                    ("binary", None, None)
+                };
+                entries.push(SkillSourceDiffEntryDto {
+                    relative_path: key.clone(),
+                    status: "modified".into(),
+                    content_kind: kind.into(),
+                    original_text,
+                    updated_text,
+                    executable_before: exec_before,
+                    executable_after: exec_after,
+                });
+            }
+            (None, None) => {}
+        }
+    }
+
+    entries
+}
+
+#[tauri::command]
+pub async fn get_skill_source_diff(
+    skill_id: String,
+    store: State<'_, Arc<SkillStore>>,
+) -> Result<SkillSourceDiffDto, AppError> {
+    let store = store.inner().clone();
+    let proxy_url = store.proxy_url();
+    tauri::async_runtime::spawn_blocking(move || {
+        let skill = store
+            .get_skill_by_id(&skill_id)
+            .map_err(AppError::db)?
+            .ok_or_else(|| AppError::not_found("Skill not found"))?;
+
+        let central_dir = PathBuf::from(&skill.central_path);
+        let source_label = source_label_for_skill(&skill);
+
+        if matches!(skill.source_type.as_str(), "local" | "import") {
+            let source_path = skill.source_ref.as_ref().ok_or_else(|| {
+                AppError::not_found("Local skill is missing its original source path")
+            })?;
+            let source_dir = PathBuf::from(source_path);
+            if !source_dir.exists() {
+                return Err(AppError::not_found("Original source path no longer exists"));
+            }
+            let entries = build_source_diff_entries(&central_dir, &source_dir);
+            return Ok(SkillSourceDiffDto {
+                skill_id,
+                source_label,
+                revision: "workspace".to_string(),
+                entries,
+            });
+        }
+
+        if !matches!(skill.source_type.as_str(), "git" | "skillssh") {
+            return Err(AppError::invalid_input(
+                "Skill does not support source diff preview",
+            ));
+        }
+
+        let git_source = git_source_from_skill(&skill)?;
+        git_fetcher::validate_git_url(&git_source.clone_url).map_err(AppError::git)?;
+        let remote_revision = git_fetcher::resolve_remote_revision(
+            &git_source.clone_url,
+            git_source.branch.as_deref(),
+            proxy_url.as_deref(),
+        )
+        .map_err(AppError::git)?;
+
+        let temp_dir = git_fetcher::clone_repo_ref(
+            &git_source.clone_url,
+            git_source.branch.as_deref(),
+            None,
+            proxy_url.as_deref(),
+        )
+        .map_err(AppError::classify_git_error)?;
+
+        let result = (|| -> Result<SkillSourceDiffDto, AppError> {
+            git_fetcher::checkout_revision(&temp_dir, &remote_revision).map_err(AppError::git)?;
+            let skill_dir = resolve_skill_dir(
+                &temp_dir,
+                git_source.subpath.as_deref(),
+                git_source.locator_skill_id.as_deref(),
+            )?;
+            let entries = build_source_diff_entries(&central_dir, &skill_dir);
+            Ok(SkillSourceDiffDto {
+                skill_id,
+                source_label,
+                revision: remote_revision,
+                entries,
             })
         })();
 

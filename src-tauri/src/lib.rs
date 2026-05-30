@@ -892,6 +892,7 @@ pub fn run() {
             commands::skills::get_skills_for_preset,
             commands::skills::get_skill_document,
             commands::skills::get_source_skill_document,
+            commands::skills::get_skill_source_diff,
             commands::skills::delete_managed_skill,
             commands::skills::delete_managed_skills,
             commands::skills::install_local,

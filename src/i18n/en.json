@@ -178,6 +178,20 @@
       "source": "Source"
     },
     "sourceDiffUnavailable": "Source content is unavailable right now",
+    "sourceDiff": {
+      "noChanges": "No changes — the source matches the central library",
+      "status": {
+        "added": "Added",
+        "removed": "Removed",
+        "modified": "Modified"
+      },
+      "execBit": "Permission {{before}} → {{after}}",
+      "summary": {
+        "binary": "Binary file changed",
+        "too_large": "File changed but is too large to preview",
+        "permission_only": "Only file permissions changed"
+      }
+    },
     "localSource": "Local library",
     "agentCount": "{{count}} agents",
     "ready": "Ready",
